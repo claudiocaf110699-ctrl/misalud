@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registro · Mi Salud</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --azul:    #1a6fc4;
+    --azul-d:  #145aa0;
+    --azul-cl: #e8f1fb;
+    --verde:   #1baf7a;
+    --rojo:    #d94040;
+    --gris1:   #f5f7fa;
+    --gris2:   #e2e6ed;
+    --gris3:   #9aa3b0;
+    --texto:   #1a1f2b;
+    --sub:     #5a6272;
+    --radio:   12px;
+    --sombra:  0 2px 12px rgba(0,0,0,.08);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--gris1);
+    color: var(--texto);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .barra {
+    background: #fff;
+    border-bottom: 1px solid var(--gris2);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .barra-in {
+    max-width: 900px; margin: 0 auto;
+    padding: 0 20px;
+    display: flex; align-items: center; gap: 16px; height: 60px;
+  }
+  .marca { font-size: 13px; color: var(--sub); }
+  .barra-titulo { font-weight: 700; font-size: 17px; }
+  .tabs { display: flex; gap: 4px; margin-left: auto; }
+  .tab {
+    padding: 6px 16px; border-radius: 8px; border: none; cursor: pointer;
+    font-size: 14px; font-weight: 500; background: transparent; color: var(--sub);
+    transition: background .15s, color .15s;
+  }
+  .tab[aria-selected="true"] { background: var(--azul-cl); color: var(--azul); }
+
+  /* ── Contenido ── */
+  .contenido { max-width: 900px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  /* ── Panel ── */
+  .panel {
+    background: #fff; border-radius: var(--radio);
+    box-shadow: var(--sombra); padding: 28px;
+  }
+  .panel + .panel { margin-top: 20px; }
+  .panel h2 { font-size: 18px; margin-bottom: 6px; }
+  .panel .sub { font-size: 14px; color: var(--sub); margin-bottom: 22px; }
+
+  /* ── Botão principal ── */
+  .btn-google {
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    width: 100%; padding: 28px 20px;
+    background: var(--azul); color: #fff;
+    border: none; border-radius: var(--radio); cursor: pointer;
+    font-size: 20px; font-weight: 700;
+    box-shadow: 0 4px 18px rgba(26,111,196,.35);
+    transition: background .15s, transform .1s, box-shadow .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-google:hover  { background: var(--azul-d); box-shadow: 0 6px 22px rgba(26,111,196,.45); }
+  .btn-google:active { transform: scale(.97); }
+  .btn-google:disabled { opacity: .6; cursor: default; transform: none; }
+  .btn-google .icono { font-size: 28px; flex-shrink: 0; }
+
+  /* ── Controles fecha/turno ── */
+  .controles {
+    display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;
+    margin-bottom: 22px;
+  }
+  .campo { display: flex; flex-direction: column; gap: 5px; }
+  .campo span { font-size: 12px; font-weight: 600; color: var(--sub); text-transform: uppercase; letter-spacing: .04em; }
+  .campo input[type="date"] {
+    padding: 8px 12px; border: 1px solid var(--gris2); border-radius: 8px;
+    font-size: 14px; color: var(--texto); background: #fff;
+  }
+  .seg { display: flex; border-radius: 8px; overflow: hidden; border: 1px solid var(--gris2); }
+  .seg button {
+    padding: 8px 18px; border: none; cursor: pointer; font-size: 14px;
+    background: #fff; color: var(--sub); transition: background .12s, color .12s;
+  }
+  .seg button + button { border-left: 1px solid var(--gris2); }
+  .seg button[aria-pressed="true"] { background: var(--azul-cl); color: var(--azul); font-weight: 600; }
+  .hint { font-size: 12px; color: var(--gris3); margin-top: 4px; }
+
+  /* ── Contadores do dia ── */
+  .total-dia {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--azul-cl); border-radius: 10px;
+    padding: 18px 22px; margin: 22px 0 0;
+  }
+  .total-num { font-size: 44px; font-weight: 800; color: var(--azul); line-height: 1; }
+  .total-label { font-size: 14px; color: var(--sub); }
+  .total-label strong { display: block; font-size: 16px; color: var(--azul); }
+  .turnos-dia { font-size: 13px; color: var(--sub); margin-top: 10px; }
+
+  /* ── Lista ── */
+  .lista { list-style: none; margin-top: 18px; display: flex; flex-direction: column; gap: 8px; }
+  .lista li {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; background: var(--gris1); border-radius: 8px;
+    font-size: 14px;
+  }
+  .lista .hora { color: var(--sub); font-size: 13px; min-width: 74px; }
+  .lista .turno-tag {
+    background: var(--gris2); border-radius: 4px; padding: 2px 7px;
+    font-size: 12px; color: var(--sub);
+  }
+  .lista .acc { margin-left: auto; }
+  .lista .del {
+    border: none; background: transparent; cursor: pointer;
+    color: var(--rojo); font-size: 13px; padding: 4px 8px; border-radius: 6px;
+    transition: background .12s;
+  }
+  .lista .del:hover { background: #fdeaea; }
+  .lista .pendiente { opacity: .55; font-style: italic; }
+  .vacio { color: var(--gris3); font-size: 14px; padding: 8px 0; }
+
+  /* ── Gráficos ── */
+  .grafico-wrap { position: relative; height: 260px; margin-top: 20px; }
+  .grafico-wrap canvas { max-height: 260px; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(16px);
+    background: #1a1f2b; color: #fff; border-radius: 10px;
+    padding: 12px 20px; font-size: 14px; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    z-index: 100; white-space: nowrap;
+  }
+  .toast.visivel { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  .toast.err { background: var(--rojo); }
+
+  /* ── Responsivo ── */
+  @media (max-width: 500px) {
+    .barra-titulo { font-size: 15px; }
+    .btn-google { font-size: 17px; padding: 22px 16px; }
+    .total-num { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Configuração ──────────────────────────────────────────────
+// IMPORTANTE: substitua pela URL do seu Apps Script implantado
+var SCRIPT_URL = 'COLE_AQUI_A_URL_DO_APPS_SCRIPT';
+var CLAVE      = 'CAMBIAR_ESTA_CLAVE'; // mesma que está no código.gs
+
+// ── Estado ───────────────────────────────────────────────────
+var st = {
+  tab: 'registrar',
+  vista: hoyLocal(),
+  turno: turnoAuto(),
+  turnoManual: false,
+  dia: [],
+  pendientes: [],
+  cargandoDia: false,
+  resumen: null,
+  chart: null
+};
+
+var raiz = document.getElementById('app');
+
+// ── Helpers ───────────────────────────────────────────────────
+function dos(n) { return (n < 10 ? '0' : '') + n; }
+function hoyLocal() {
+  var d = new Date();
+  return d.getFullYear() + '-' + dos(d.getMonth()+1) + '-' + dos(d.getDate());
+}
+function turnoAuto() { return new Date().getHours() < 12 ? 'Mañana' : 'Tarde'; }
+function uuid() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  var b = new Uint8Array(16); crypto.getRandomValues(b);
+  b[6]=(b[6]&15)|64; b[8]=(b[8]&63)|128;
+  return Array.from(b).map(function(x){return (x+256).toString(16).slice(1);}).join('')
+    .replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/,'$1-$2-$3-$4-$5');
+}
+function fechaLarga(f) {
+  var p = f.split('-').map(Number);
+  var d = new Date(p[0], p[1]-1, p[2]);
+  var dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return dias[d.getDay()] + ' ' + p[2] + ' de ' + meses[p[1]-1] + ' de ' + p[0];
+}
+function hora12(iso) {
+  var m = /[\sT](\d{2}):(\d{2})/.exec(iso||'');
+  if (!m) return '';
+  var h = Number(m[1]), suf = h < 12 ? 'a. m.' : 'p. m.';
+  return (h%12||12) + ':' + m[2] + ' ' + suf;
+}
+function esc(v) {
+  return String(v==null?'':v).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function etqMes(m) {
+  var ms=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return ms[Number(m.slice(5,7))-1] + ' ' + m.slice(2,4);
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+var toastTimer;
+function toast(msg, erro) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast visivel' + (erro ? ' err' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('visivel'); }, 4000);
+}
+
+// ── API (Apps Script) ─────────────────────────────────────────
+function api(accion, datos) {
+  var body = JSON.stringify({ clave: CLAVE, accion: accion, dados: datos || {} });
+  return fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: body,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    redirect: 'follow'
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(j){
+    if (!j || !j.ok) throw new Error((j && j.error) || 'Error desconocido.');
+    return j.dados;
+  });
+}
+
+// ── Render principal ──────────────────────────────────────────
+function render() {
+  raiz.innerHTML =
+    '<header class="barra"><div class="barra-in">' +
+    '<div><p class="marca">Clínica Familiar Mi Salud</p><p class="barra-titulo">Registro de Pacientes Google</p></div>' +
+    '<nav class="tabs" role="tablist">' +
+    '<button class="tab" role="tab" data-tab="registrar">Registrar</button>' +
+    '<button class="tab" role="tab" data-tab="graficos">Gráficos</button>' +
+    '</nav></div></header>' +
+    '<main class="contenido" id="contenido"></main>';
+
+  document.querySelectorAll('.tab').forEach(function(b){
+    b.onclick = function(){ cambiarTab(b.dataset.tab); };
+  });
+  cambiarTab(st.tab);
+}
+
+function cambiarTab(tab) {
+  st.tab = tab;
+  document.querySelectorAll('.tab').forEach(function(b){
+    b.setAttribute('aria-selected', String(b.dataset.tab === tab));
+  });
+  destruirChart();
+  if (tab === 'registrar') { renderRegistrar(); cargarDia(); }
+  else { renderGraficos(); }
+}
+
+// ── Tab: Registrar ────────────────────────────────────────────
+function renderRegistrar() {
+  document.getElementById('contenido').innerHTML =
+    '<div class="panel">' +
+    '<h2>Registrar llegada</h2>' +
+    '<p class="sub">Toque el botón cada vez que llegue un paciente nuevo por Google.</p>' +
+    '<div class="controles">' +
+    '<label class="campo"><span>Fecha</span>' +
+    '<input type="date" id="i-fecha" max="' + hoyLocal() + '" value="' + st.vista + '"></label>' +
+    '<div class="campo"><span>Turno</span>' +
+    '<div class="seg" role="group">' +
+    '<button type="button" data-turno="Mañana">Mañana</button>' +
+    '<button type="button" data-turno="Tarde">Tarde</button>' +
+    '</div>' +
+    '<div class="hint" id="hint-turno"></div></div>' +
+    '</div>' +
+    '<button class="btn-google" id="b-reg" type="button">' +
+    '<span class="icono">🔵</span>' +
+    '<span>Paciente llegó por Google</span>' +
+    '</button>' +
+    '<div class="total-dia" id="total-dia">' +
+    '<div class="total-num" id="total-num">–</div>' +
+    '<div class="total-label"><strong>Pacientes Google hoy</strong><span id="fecha-larga">' + fechaLarga(st.vista) + '</span></div>' +
+    '</div>' +
+    '<p class="turnos-dia" id="turnos-dia"></p>' +
+    '<ul class="lista" id="lista"></ul>' +
+    '</div>';
+
+  // fecha
+  var inp = document.getElementById('i-fecha');
+  inp.onchange = function(){
+    if (!inp.value){ inp.value = st.vista; return; }
+    st.vista = inp.value;
+    st.dia = [];
+    pintarDia();
+    cargarDia();
+  };
+
+  // turno
+  document.querySelectorAll('.seg button').forEach(function(b){
+    b.onclick = function(){
+      st.turno = b.dataset.turno;
+      st.turnoManual = true;
+      pintarTurno();
+    };
+  });
+  pintarTurno();
+
+  // botão principal
+  document.getElementById('b-reg').onclick = registrar;
+
+  pintarDia();
+}
+
+function pintarTurno() {
+  document.querySelectorAll('.seg button').forEach(function(b){
+    b.setAttribute('aria-pressed', String(b.dataset.turno === st.turno));
+  });
+  var h = document.getElementById('hint-turno');
+  if (h) h.textContent = st.turnoManual ? 'Elegido manualmente' : 'Automático según la hora';
+}
+
+function registros() {
+  var ids = {}, lista = [];
+  st.pendientes.forEach(function(p){ if (p.fecha === st.vista){ lista.push(p); ids[p.id]=1; } });
+  st.dia.forEach(function(r){ if (!ids[r.id]) lista.push(r); });
+  return lista;
+}
+
+function pintarDia() {
+  var el_num    = document.getElementById('total-num');
+  var el_turnos = document.getElementById('turnos-dia');
+  var el_lista  = document.getElementById('lista');
+  var el_fecha  = document.getElementById('fecha-larga');
+  if (!el_lista) return;
+
+  var regs = registros();
+  var m = 0, t = 0;
+  regs.forEach(function(r){ if(r.turno==='Tarde') t++; else m++; });
+
+  if (el_num)    el_num.textContent = regs.length;
+  if (el_fecha)  el_fecha.textContent = fechaLarga(st.vista);
+  if (el_turnos) el_turnos.textContent = 'Mañana: ' + m + ' · Tarde: ' + t;
+
+  if (!regs.length) {
+    el_lista.innerHTML = '<li class="vacio">Ningún registro en este día todavía.</li>';
+    return;
+  }
+
+  el_lista.innerHTML = regs.map(function(r){
+    return '<li' + (r.pendiente?' class="pendiente"':'') + ' data-id="' + esc(r.id) + '">' +
+      '<span class="hora">' + (r.pendiente ? '…' : esc(hora12(r.creado))) + '</span>' +
+      '<span class="turno-tag">' + esc(r.turno) + '</span>' +
+      (r.pendiente
+        ? '<span style="font-size:13px;color:var(--sub)">Guardando…</span>'
+        : '<span class="acc"><button class="del" type="button" title="Eliminar">✕</button></span>') +
+      '</li>';
+  }).join('');
+
+  el_lista.querySelectorAll('.del').forEach(function(b){
+    b.onclick = function(){ eliminar(b.closest('li').dataset.id); };
+  });
+}
+
+function cargarDia() {
+  st.cargandoDia = true;
+  var fecha = st.vista;
+  api('dia', { fecha: fecha }).then(function(dados){
+    if (st.vista !== fecha) return;
+    st.dia = dados || [];
+    st.cargandoDia = false;
+    pintarDia();
+  }).catch(function(err){
+    st.cargandoDia = false;
+    toast(err.message, true);
+  });
+}
+
+function registrar() {
+  var btn = document.getElementById('b-reg');
+  if (btn) { btn.disabled = true; }
+
+  var id     = uuid();
+  var fecha  = st.vista;
+  var turno  = st.turno;
+  var creado = new Date().toISOString().replace('T',' ').slice(0,19);
+
+  // Otimismo: já mostra na lista
+  var pendiente = { id: id, fecha: fecha, turno: turno, creado: creado, pendiente: true };
+  st.pendientes.push(pendiente);
+  pintarDia();
+
+  api('registrar', { id: id, fecha: fecha, turno: turno, creado: creado }).then(function(){
+    st.pendientes = st.pendientes.filter(function(p){ return p.id !== id; });
+    if (!st.dia.find(function(r){ return r.id === id; })) {
+      st.dia.push({ id: id, fecha: fecha, turno: turno, creado: creado });
+    }
+    pintarDia();
+    toast('✅ Paciente registrado');
+  }).catch(function(err){
+    st.pendientes = st.pendientes.filter(function(p){ return p.id !== id; });
+    pintarDia();
+    toast(err.message, true);
+  }).finally(function(){
+    if (btn) btn.disabled = false;
+  });
+}
+
+function eliminar(id) {
+  if (!confirm('¿Eliminar este registro?')) return;
+  api('eliminar', { id: id }).then(function(){
+    st.dia = st.dia.filter(function(r){ return r.id !== id; });
+    pintarDia();
+    toast('Registro eliminado');
+  }).catch(function(err){ toast(err.message, true); });
+}
+
+// ── Tab: Gráficos ─────────────────────────────────────────────
+function renderGraficos() {
+  document.getElementById('contenido').innerHTML =
+    '<div class="panel" id="p-grafico">' +
+    '<h2>Pacientes por Google</h2>' +
+    '<p class="sub">Registros de los últimos 12 meses.</p>' +
+    '<div class="controles">' +
+    '<label class="campo"><span>Período</span>' +
+    '<select id="sel-meses" style="padding:8px 12px;border:1px solid var(--gris2);border-radius:8px;font-size:14px;">' +
+    '<option value="3">Últimos 3 meses</option>' +
+    '<option value="6">Últimos 6 meses</option>' +
+    '<option value="12" selected>Últimos 12 meses</option>' +
+    '</select></label></div>' +
+    '<div class="grafico-wrap"><canvas id="chart"></canvas></div>' +
+    '<div id="tabla-resumen" style="margin-top:20px"></div>' +
+    '</div>';
+
+  document.getElementById('sel-meses').onchange = function(e){
+    cargarResumen(Number(e.target.value));
+  };
+  cargarResumen(12);
+}
+
+function cargarResumen(meses) {
+  api('resumen', { meses: meses }).then(function(dados){
+    st.resumen = dados;
+    pintarGrafico(dados);
+    pintarTabla(dados);
+  }).catch(function(err){ toast(err.message, true); });
+}
+
+function destruirChart() {
+  if (st.chart) { try { st.chart.destroy(); } catch(e){} st.chart = null; }
+}
+
+function pintarGrafico(dados) {
+  destruirChart();
+  var canvas = document.getElementById('chart');
+  if (!canvas || !window.Chart) return;
+  var labels = dados.map(function(d){ return etqMes(d.mes); });
+  var totais  = dados.map(function(d){ return d.total; });
+  st.chart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Pacientes Google',
+        data: totais,
+        backgroundColor: 'rgba(26,111,196,.75)',
+        borderColor: '#1a6fc4',
+        borderWidth: 1.5,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c){ return ' ' + c.raw + ' pac.'; } } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 12 } } },
+        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 12 } }, grid: { color: '#e2e6ed' } }
+      }
+    }
+  });
+}
+
+function pintarTabla(dados) {
+  var el = document.getElementById('tabla-resumen');
+  if (!el) return;
+  // só meses com registros
+  var comDados = dados.filter(function(d){ return d.total > 0; });
+  if (!comDados.length) { el.innerHTML = '<p style="color:var(--gris3);font-size:14px">Sin registros en el período.</p>'; return; }
+  var meses_l = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  function nomeMes(m){ return meses_l[Number(m.slice(5,7))-1] + ' ' + m.slice(0,4); }
+  var total_geral = comDados.reduce(function(s,d){ return s + d.total; }, 0);
+  el.innerHTML =
+    '<table style="width:100%;border-collapse:collapse;font-size:14px;">' +
+    '<thead><tr style="border-bottom:2px solid var(--gris2)">' +
+    '<th style="text-align:left;padding:8px 6px;color:var(--sub);font-weight:600">Mes</th>' +
+    '<th style="text-align:right;padding:8px 6px;color:var(--sub);font-weight:600">Total</th>' +
+    '<th style="text-align:right;padding:8px 6px;color:var(--sub);font-weight:600">Mañana</th>' +
+    '<th style="text-align:right;padding:8px 6px;color:var(--sub);font-weight:600">Tarde</th>' +
+    '</tr></thead><tbody>' +
+    comDados.slice().reverse().map(function(d){
+      return '<tr style="border-bottom:1px solid var(--gris2)">' +
+        '<td style="padding:9px 6px">' + nomeMes(d.mes) + '</td>' +
+        '<td style="text-align:right;padding:9px 6px;font-weight:700">' + d.total + '</td>' +
+        '<td style="text-align:right;padding:9px 6px;color:var(--sub)">' + d.manana + '</td>' +
+        '<td style="text-align:right;padding:9px 6px;color:var(--sub)">' + d.tarde + '</td>' +
+        '</tr>';
+    }).join('') +
+    '<tr style="border-top:2px solid var(--gris2);font-weight:700">' +
+    '<td style="padding:9px 6px">Total</td>' +
+    '<td style="text-align:right;padding:9px 6px">' + total_geral + '</td>' +
+    '<td colspan="2"></td></tr>' +
+    '</tbody></table>';
+}
+
+// ── Sondeo (atualiza o dia a cada 30s) ───────────────────────
+var sondeoTimer;
+function iniciarSondeo() {
+  clearInterval(sondeoTimer);
+  sondeoTimer = setInterval(function(){ if (st.tab==='registrar') cargarDia(); }, 30000);
+}
+
+// ── Init ──────────────────────────────────────────────────────
+// Carrega Chart.js e inicia
+(function(){
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js';
+  s.onload = function(){
+    render();
+    iniciarSondeo();
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>
